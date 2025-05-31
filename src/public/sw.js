@@ -7,51 +7,52 @@ const urlsToCache = [
   '/images/logo.png',
   '/favicon.png',
   '/scripts/home/home-page.js',
-  
-  // Tambahkan file lainnya jika perlu
+  '/manifest.json',
 ];
 
-// Install service worker dan cache file statis
-self.addEventListener('install', event => {
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
   self.skipWaiting();
 });
 
-// Activate dan hapus cache lama jika ada
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+      )
     )
   );
   self.clients.claim();
 });
 
-// Fetch: Cache-first strategy + fallback aman
-self.addEventListener('fetch', event => {
-  // Hindari mengganggu dev server Vite
-  if (event.request.url.includes('/@vite/')) return;
+self.addEventListener('fetch', (event) => {
+  if (
+    event.request.url.includes('/@vite/') ||
+    event.request.url.includes('hot-update')
+  )
+    return;
 
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html'); // fallback offline
-        }
-
-        // Fallback aman jika resource tidak ada & bukan navigasi
-        return new Response('Service unavailable', {
-          status: 503,
-          statusText: 'Service Unavailable'
-        });
-      });
+    caches.match(event.request).then((cachedResponse) => {
+      return (
+        cachedResponse ||
+        fetch(event.request).catch(() => {
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+          return new Response('Service unavailable', {
+            status: 503,
+            statusText: 'Service Unavailable',
+          });
+        })
+      );
     })
   );
 });
 
-// Push Notification Handler
 self.addEventListener('push', function (event) {
   let title = 'Notifikasi';
   let options = {
@@ -70,7 +71,5 @@ self.addEventListener('push', function (event) {
     options.body = event.data.text();
   }
 
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
+  event.waitUntil(self.registration.showNotification(title, options));
 });

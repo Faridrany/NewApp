@@ -3,7 +3,7 @@ import { ErrorMessageTemplate } from "../../templates.js";
 import Camera from "../../utils/Camera.js";
 import Map from "../../utils/Map.js";
 import CreateStoryPresenter from "./createStory-presenter.js";
-
+import { saveStory, initDB, getAllStories, getStoryById, deleteStory } from "../../utils/db.js";
 export default class CreateStoryPage {
     #presenter = null;
     #map = null;

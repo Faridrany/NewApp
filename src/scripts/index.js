@@ -1,3 +1,4 @@
+//src/scripts/index.js
 import '../styles/styles.css';
 import App from './pages/app';
 import { stopAllStreams } from './utils';
